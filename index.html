@@ -6756,4 +6756,55 @@
 })();
 </script>
 
+
+<script>
+/* V16.1 GITHUB REALTIME REPAIR
+   GitHub Pages membaca data.json dari repository yang sama.
+   Format Select lama (nama aktiviti sebagai dynamic key) turut disokong. */
+(function () {
+  const isGitHubPages = /github\.io$/i.test(location.hostname || '');
+  if (!isGitHubPages) return;
+
+  function normalizeGitHubRecord(item) {
+    item = item && typeof item === 'object' ? item : {};
+    const status = item.status || item.Status || item.Status0 || item.StatusValue || '';
+    const fixedKeys = new Set(['status','Status','Status0','StatusValue','Title','NamaProgram','Teras','Teras0','Teras1','KPI','PIC','PIC_Unit','TarikhMula','TarikhTamat']);
+    const dynamicKey = Object.keys(item).find(k => !fixedKeys.has(k));
+    const name = item.NamaProgram || item.Title || (dynamicKey ? (item[dynamicKey] || dynamicKey) : '');
+    return {
+      ...item,
+      Title: String(name || ''),
+      NamaProgram: String(name || ''),
+      Status: String(status || '')
+    };
+  }
+
+  async function loadGitHubRealtimeData() {
+    try {
+      const response = await fetch('./data.json?_t=' + Date.now(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const payload = await response.json();
+      const records = Array.isArray(payload) ? payload :
+        (Array.isArray(payload.value) ? payload.value :
+        (Array.isArray(payload.records) ? payload.records : []));
+      window.spLiveItems = records.map(normalizeGitHubRecord);
+      if (typeof spLiveItems !== 'undefined') spLiveItems = window.spLiveItems;
+      if (typeof renderLiveListDashboard === 'function') renderLiveListDashboard();
+      if (typeof setSPStatus === 'function') {
+        setSPStatus('GitHub Pages tersambung: ' + records.length + ' aktiviti diterima daripada data.json. Auto refresh setiap 60 saat.', true);
+      }
+      const badge = document.getElementById('cloudSyncBadge');
+      if (badge) badge.textContent = 'LIVE GITHUB · ' + records.length + ' rekod · ' + new Date().toLocaleTimeString('ms-MY');
+    } catch (err) {
+      console.warn('GitHub realtime data error:', err);
+      if (typeof setSPStatus === 'function') setSPStatus('GitHub Pages belum menerima data.json. Pastikan fail data.json berada dalam branch main.', false);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    loadGitHubRealtimeData();
+    setInterval(loadGitHubRealtimeData, 60000);
+  });
+})();
+</script>
 </body></html>
