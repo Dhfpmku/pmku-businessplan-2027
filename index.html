@@ -6,7 +6,7 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>V15 REALTIME · Business Plan Politeknik METrO Kuantan (PMKu) 2027</title>
+  <title>V18 • V15 REALTIME · Business Plan Politeknik METrO Kuantan (PMKu) 2027</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -213,6 +213,7 @@
 </style>
 
 </head>
+<!-- PMKu Business Plan 2027 Dashboard V18: GitHub realtime smart parser + matrix merge -->
 <body class="min-h-screen flex flex-col">
 
   <!-- TOP STICKY CORPORATE TOOLBAR & EXPORT BAR (Hidden on Print) -->
@@ -432,36 +433,36 @@
   </section>
 
 
-  <!-- PANDUAN INFOGRAFIK: CARA ISI, SIMPAN DAN KONGSI -->
+  <!-- PANDUAN INFOGRAFIK V18: ALIRAN KERJA REALTIME -->
   <section id="panduan-staf" class="no-print max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-5">
     <div class="bg-white border border-blue-200 rounded-2xl shadow-sm overflow-hidden">
       <div class="bg-[#002855] text-white px-5 py-4 flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-[#D4AF37] text-[#002855] grid place-items-center text-xl"><i class="fa-solid fa-route"></i></div>
-        <div><h2 class="font-extrabold text-base sm:text-lg">PANDUAN MUDAH PIC: ISI → SIMPAN → HANTAR</h2><p class="text-xs text-slate-200">Ikut aliran ini supaya maklumat kekal dan versi terkini boleh dibuka oleh semua.</p></div>
+        <div><h2 class="font-extrabold text-base sm:text-lg">PANDUAN MUDAH PIC: ISI → SIMPAN → SEMAK</h2><p class="text-xs text-slate-200">Isi sekali dalam Microsoft List. Dashboard dan bahan laporan dikemas kini secara automatik.</p></div>
       </div>
       <div class="p-5">
-        <div class="mb-4 rounded-xl border-2 border-[#D4AF37] bg-amber-50 p-4">
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <div><p class="text-xs font-extrabold text-amber-800 uppercase">Perbatuan Pengisian Business Plan PMKu 2027</p><h3 class="text-lg font-black text-[#002855]">Tarikh akhir PIC: 8 Disember 2026</h3><p class="text-xs text-slate-700">Semua PIC hendaklah melengkapkan aktiviti, sasaran, tarikh, status dan pencapaian selewat-lewatnya pada tarikh ini.</p></div>
-            <div class="grid grid-cols-3 gap-2 text-center text-[11px] min-w-[360px]">
-              <div class="rounded-lg bg-white border p-2"><b class="block text-[#002855]">24 Nov</b>Pengisian dibuka</div>
-              <div class="rounded-lg bg-white border p-2"><b class="block text-[#002855]">1–7 Dis</b>Semakan PIC/Unit</div>
-              <div class="rounded-lg bg-[#002855] text-white border p-2"><b class="block text-[#D4AF37]">8 Dis 2026</b>Tarikh akhir</div>
-            </div>
-          </div>
+        <div class="rounded-xl border-2 border-amber-400 bg-amber-50 px-4 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div><div class="text-[11px] font-black uppercase text-amber-800">Perbatuan Pengisian Business Plan PMKu 2027</div><div class="text-lg font-extrabold text-[#002855]">Tarikh akhir PIC: 8 Disember 2026</div><div class="text-xs text-slate-700">Lengkapkan aktiviti, sasaran, tarikh, status, pencapaian dan bukti melalui Microsoft List.</div></div>
+          <div class="grid grid-cols-3 gap-2 text-center text-[10px]"><div class="rounded-lg border bg-white px-3 py-2"><b>24 Nov</b><br>Pengisian dibuka</div><div class="rounded-lg border bg-white px-3 py-2"><b>1–7 Dis</b><br>Semakan PIC/Unit</div><div class="rounded-lg bg-[#002855] text-white px-3 py-2"><b>8 Dis 2026</b><br>Tarikh akhir</div></div>
         </div>
-        <div id="spConnectionStatus" class="mb-4 rounded-lg bg-slate-100 border border-slate-200 px-4 py-2 text-xs text-slate-700"><i class="fa-solid fa-cloud mr-1"></i> Microsoft List: menunggu sambungan. Buka versi ini melalui SharePoint/OneDrive organisasi untuk data langsung.</div>
+        <div id="spConnectionStatus" class="mt-4 mb-4 rounded-lg border px-4 py-2 text-xs bg-amber-50 border-amber-200 text-amber-900"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Menyemak sambungan data realtime...</div>
+        <div id="v18DiagnosticPanel" class="mb-4 grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+          <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3"><div class="font-extrabold text-emerald-800">SUMBER DATA</div><div id="diagSource" class="font-bold text-[#002855] mt-1">MENYAMBUNG...</div></div>
+          <div class="rounded-lg border border-blue-200 bg-blue-50 p-3"><div class="font-extrabold text-blue-800">REKOD</div><div id="diagRecords" class="font-bold text-[#002855] mt-1">0 rekod</div></div>
+          <div class="rounded-lg border border-amber-200 bg-amber-50 p-3"><div class="font-extrabold text-amber-800">FORMAT JSON</div><div id="diagFormat" class="font-bold text-[#002855] mt-1">Menunggu data</div></div>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3"><div class="font-extrabold text-slate-700">LAST SYNC</div><div id="diagLastSync" class="font-bold text-[#002855] mt-1">-</div></div>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div class="rounded-xl border-2 border-blue-100 bg-blue-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-[#002855] text-white grid place-items-center font-black">1</span><i class="fa-solid fa-layer-group text-[#003F88]"></i></div><h3 class="font-extrabold text-[#002855]">Pilih Teras</h3><p class="text-xs text-slate-700 mt-1">Cari inisiatif yang sepadan dengan tugas, PIC, KPI dan Iltizam.</p></div>
-          <div class="rounded-xl border-2 border-sky-100 bg-sky-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-[#003F88] text-white grid place-items-center font-black">2</span><i class="fa-solid fa-pen-to-square text-sky-700"></i></div><h3 class="font-extrabold text-[#002855]">Isi Aktiviti</h3><p class="text-xs text-slate-700 mt-1">Klik <b>Tambah / Urus Aktiviti</b>. Isi nama, sasaran, tarikh, status dan bukti ringkas.</p></div>
-          <div class="rounded-xl border-2 border-emerald-100 bg-emerald-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-emerald-700 text-white grid place-items-center font-black">3</span><i class="fa-solid fa-floppy-disk text-emerald-700"></i></div><h3 class="font-extrabold text-[#002855]">Simpan Rekod</h3><p class="text-xs text-slate-700 mt-1">Klik <b>Simpan Program/Aktiviti</b> dan semak rekod muncul pada Dashboard.</p></div>
-          <div class="rounded-xl border-2 border-amber-200 bg-amber-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-amber-600 text-white grid place-items-center font-black">4</span><i class="fa-solid fa-file-arrow-down text-amber-700"></i></div><h3 class="font-extrabold text-[#002855]">Jana HTML</h3><p class="text-xs text-slate-700 mt-1">Klik <b>Simpan & Kongsi Versi Terkini</b>. Fail baharu masuk ke folder <b>Downloads</b>.</p></div>
-          <div class="rounded-xl border-2 border-rose-100 bg-rose-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-rose-700 text-white grid place-items-center font-black">5</span><i class="fa-solid fa-cloud-arrow-up text-rose-700"></i></div><h3 class="font-extrabold text-[#002855]">Ganti & Hantar</h3><p class="text-xs text-slate-700 mt-1">Buka fail baharu untuk semak. Muat naik ke OneDrive/SharePoint dan pilih <b>Gantikan</b> fail lama.</p></div>
+          <div class="rounded-xl border-2 border-blue-100 bg-blue-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-[#002855] text-white grid place-items-center font-black">1</span><i class="fa-solid fa-list-check text-[#002855]"></i></div><h3 class="font-extrabold text-[#002855]">Buka Microsoft List</h3><p class="text-xs text-slate-700 mt-1">Pilih rekod program/aktiviti yang berkaitan dengan PIC atau unit.</p></div>
+          <div class="rounded-xl border-2 border-sky-100 bg-sky-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-blue-700 text-white grid place-items-center font-black">2</span><i class="fa-solid fa-pen-to-square text-blue-700"></i></div><h3 class="font-extrabold text-[#002855]">Isi / Kemaskini</h3><p class="text-xs text-slate-700 mt-1">Lengkapkan nama aktiviti, KPI, sasaran, tarikh, status, pencapaian dan bukti.</p></div>
+          <div class="rounded-xl border-2 border-emerald-100 bg-emerald-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-emerald-700 text-white grid place-items-center font-black">3</span><i class="fa-solid fa-floppy-disk text-emerald-700"></i></div><h3 class="font-extrabold text-[#002855]">Simpan Rekod</h3><p class="text-xs text-slate-700 mt-1">Klik <b>Simpan</b>. Tidak perlu jana, muat turun atau menggantikan fail HTML.</p></div>
+          <div class="rounded-xl border-2 border-amber-200 bg-amber-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-amber-600 text-white grid place-items-center font-black">4</span><i class="fa-solid fa-arrows-rotate text-amber-700"></i></div><h3 class="font-extrabold text-[#002855]">Semak Dashboard</h3><p class="text-xs text-slate-700 mt-1">Data disegerakkan setiap 60 saat dan masuk ke kad aktiviti yang sepadan.</p></div>
+          <div class="rounded-xl border-2 border-rose-100 bg-rose-50 p-4"><div class="flex items-center gap-2 mb-2"><span class="w-8 h-8 rounded-full bg-rose-700 text-white grid place-items-center font-black">5</span><i class="fa-solid fa-file-export text-rose-700"></i></div><h3 class="font-extrabold text-[#002855]">Cetak / Eksport</h3><p class="text-xs text-slate-700 mt-1">Gunakan data semasa untuk cetakan, PDF atau PPTX tanpa salin dan tampal semula.</p></div>
         </div>
         <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-          <div class="rounded-lg bg-[#002855] text-white p-3"><b><i class="fa-solid fa-circle-check text-[#D4AF37] mr-1"></i> Semakan akhir</b><br>Refresh pautan pada PC lain dan pastikan data terkini kelihatan.</div>
-          <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-900 p-3"><b><i class="fa-solid fa-triangle-exclamation mr-1"></i> Jangan tersalah fail</b><br>Kongsi fail <b>VERSI_TERKINI_...html</b>, bukan fail lama.</div>
-          <div class="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 p-3"><b><i class="fa-solid fa-lock mr-1"></i> Simpan sandaran</b><br>Simpan satu salinan sebelum menggantikan fail utama.</div>
+          <div class="rounded-lg bg-[#002855] text-white p-3"><b><i class="fa-solid fa-circle-check text-[#D4AF37] mr-1"></i> Isi sekali, guna banyak kali</b><br>Setiap rekod PIC boleh menjadi Aktiviti 1, 2, 3 dan seterusnya pada matriks.</div>
+          <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-900 p-3"><b><i class="fa-solid fa-link mr-1"></i> Pastikan padanan tepat</b><br>Isi Teras, KPI dan PIC/Unit supaya rekod masuk ke baris matriks yang betul.</div>
+          <div class="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 p-3"><b><i class="fa-solid fa-print mr-1"></i> Sedia untuk laporan</b><br>Nama, sasaran, tarikh dan pencapaian akan dipaparkan pada kad dan cetakan.</div>
         </div>
       </div>
     </div>
@@ -6415,8 +6416,12 @@
   async function loadMicrosoftListActivities() {
     const isLocalFile = (location.protocol === 'file:' || location.protocol === 'blob:' || location.protocol === 'data:');
     const isSharePointOrigin = /\.sharepoint\.com$/i.test(location.hostname || '');
-    if (isLocalFile || !isSharePointOrigin) {
-      setSPStatus('Mod Paparan Tempatan / Pratonton OneDrive aktif. Semua data dalam fail HTML dipaparkan sepenuhnya. Gunakan butang "Simpan & Kongsi Versi Terkini" selepas mengemas kini.', true);
+    if (isLocalFile) {
+      setSPStatus('Pratonton fail tempatan aktif. Paparan terbina dalam masih tersedia; data realtime akan aktif selepas index.html dan data.json diterbitkan bersama.', true);
+      return false;
+    }
+    if (!isSharePointOrigin) {
+      // GitHub Pages atau hos web lain: jangan hentikan aliran realtime data.json.
       return false;
     }
     try {
@@ -6811,7 +6816,85 @@
     for (const key of ['value','records','items','data','activities']) {
       if (Array.isArray(payload[key])) return payload[key];
     }
-    return [];
+    // Format lama boleh hadir sebagai satu objek terus, bukan array.
+    return Object.keys(payload).length ? [payload] : [];
+  }
+
+  function compactText(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function recordFormat(records) {
+    let oldCount = 0, newCount = 0;
+    records.forEach(item => {
+      if (firstValue(item, ['NamaProgram','Nama Program','NamaAktiviti','Nama Aktiviti','Aktiviti','Program','Title'])) newCount++;
+      else oldCount++;
+    });
+    if (oldCount && newCount) return 'Format Campuran';
+    return oldCount ? 'Format Lama (auto parser)' : 'Format Baharu';
+  }
+
+  function updateV18Diagnostics(source, count, format, ok) {
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    set('diagSource', ok ? source : 'LUAR TALIAN');
+    set('diagRecords', count + ' rekod');
+    set('diagFormat', format || '-');
+    set('diagLastSync', new Date().toLocaleString('ms-MY'));
+  }
+
+  function mergeRealtimeIntoTerasData(records) {
+    if (!Array.isArray(window.terasData) || !window.terasData.length) return { matched: 0, unmatched: records.length };
+    if (!window.__V18_BASE_TERAS) window.__V18_BASE_TERAS = JSON.parse(JSON.stringify(window.terasData));
+    const merged = JSON.parse(JSON.stringify(window.__V18_BASE_TERAS));
+    const candidates = [];
+    merged.forEach((teras, ti) => (teras.sections || []).forEach(sec => (sec.rows || []).forEach(row => candidates.push({ teras, ti, row }))));
+    let matched = 0;
+
+    records.forEach((rec, index) => {
+      const explicitRow = compactText(firstValue(rec, ['RowID','RowId','rowId','KodBaris','Kod Baris']));
+      const rTeras = compactText(firstValue(rec, ['Teras','teras','Teras0','Teras1']));
+      const rPic = compactText(firstValue(rec, ['PIC_Unit','PIC Unit','PIC','pic','Tanggungjawab']));
+      const rKpi = compactText(firstValue(rec, ['KPI','kpi','Indikator','indicator']));
+      const rName = compactText(rec.NamaProgram || rec.Title || findActivityName(rec));
+      let best = null, bestScore = -1;
+
+      candidates.forEach(c => {
+        const rowId = compactText(c.row.id);
+        const rowPic = compactText(c.row.pic);
+        const rowKpi = compactText(c.row.indicator + ' ' + (c.row.activities || []).map(a => a.kpi).join(' '));
+        const rowTeras = compactText(c.teras.id + ' ' + c.teras.title + ' teras ' + (c.ti + 1));
+        const rowNames = compactText((c.row.activities || []).map(a => a.name).join(' '));
+        let score = 0;
+        if (explicitRow && explicitRow === rowId) score += 1000;
+        if (rTeras && (rowTeras.includes(rTeras) || rTeras.includes(String(c.ti + 1)))) score += 25;
+        if (rPic && rowPic && (rowPic.includes(rPic) || rPic.includes(rowPic))) score += 35;
+        if (rKpi && rowKpi && (rowKpi.includes(rKpi) || rKpi.includes(rowKpi))) score += 30;
+        if (rName && rowNames && (rowNames.includes(rName) || rName.includes(rowNames))) score += 45;
+        if (score > bestScore) { bestScore = score; best = c; }
+      });
+
+      if (!best || bestScore < 25) return;
+      const activity = {
+        id: String(firstValue(rec, ['ID','Id','id']) || ('live-' + (index + 1))),
+        name: String(rec.NamaProgram || rec.Title || findActivityName(rec)),
+        kpi: String(firstValue(rec, ['KPI','kpi','Indikator','indicator']) || best.row.indicator || ''),
+        iltizam: String(firstValue(rec, ['Iltizam','ILTIZAM','iltizam','Iltizam0']) || best.row.iltizam || ''),
+        target: String(firstValue(rec, ['Sasaran','sasaran','Target','target']) || ''),
+        date: String(firstValue(rec, ['TarikhBulan','Tarikh / Bulan','Tarikh','TarikhMula','Tarikh Mula','start','StartDate','date']) || ''),
+        achievement: String(firstValue(rec, ['Pencapaian','pencapaian','PencapaianSemasa','achievement']) || ('Status: ' + firstValue(rec, ['Status','status','Status0','StatusValue'])))
+      };
+      best.row.activities = best.row.activities || [];
+      const sameIndex = best.row.activities.findIndex(a => compactText(a.name) === compactText(activity.name));
+      if (sameIndex >= 0) best.row.activities[sameIndex] = { ...best.row.activities[sameIndex], ...activity };
+      else best.row.activities.push(activity);
+      matched++;
+    });
+
+    window.terasData = merged;
+    try { terasData = merged; } catch (e) {}
+    if (typeof window.renderTerasSections === 'function') window.renderTerasSections();
+    else if (typeof renderTerasSections === 'function') renderTerasSections();
+    return { matched, unmatched: records.length - matched };
   }
 
   async function loadGitHubRealtimeData() {
@@ -6824,7 +6907,9 @@
 
       window.spLiveItems = normalized;
       try { spLiveItems = normalized; } catch (e) {}
-      console.log('GITHUB RECORDS:', normalized);
+      const mergeResult = mergeRealtimeIntoTerasData(normalized);
+      updateV18Diagnostics('LIVE GITHUB', normalized.length, recordFormat(records), true);
+      console.log('GITHUB RECORDS:', normalized, 'MATRIX MERGE:', mergeResult);
 
       if (typeof window.renderLiveListDashboard === 'function') window.renderLiveListDashboard();
       else if (typeof renderLiveListDashboard === 'function') renderLiveListDashboard();
@@ -6839,6 +6924,7 @@
       return true;
     } catch (err) {
       console.warn('GitHub realtime data error:', err);
+      updateV18Diagnostics('LUAR TALIAN', 0, 'data.json tidak dibaca', false);
       const message = location.protocol === 'file:'
         ? 'Pratonton fail tempatan aktif. data.json hanya boleh dibaca selepas index.html dan data.json dimuat naik bersama ke GitHub Pages.'
         : 'data.json belum dapat dibaca. Pastikan fail data.json berada dalam folder dan branch yang sama dengan index.html.';
