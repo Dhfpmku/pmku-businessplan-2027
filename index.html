@@ -6756,27 +6756,62 @@
 })();
 </script>
 
-
-<script>
-/* V16.1 GITHUB REALTIME REPAIR
-   GitHub Pages membaca data.json dari repository yang sama.
-   Format Select lama (nama aktiviti sebagai dynamic key) turut disokong. */
+\n<script id="v17GitHubRealtimeRepair">
 (function () {
-  const isGitHubPages = /github\.io$/i.test(location.hostname || '');
-  if (!isGitHubPages) return;
+  'use strict';
 
-  function normalizeGitHubRecord(item) {
-    item = item && typeof item === 'object' ? item : {};
-    const status = item.status || item.Status || item.Status0 || item.StatusValue || '';
-    const fixedKeys = new Set(['status','Status','Status0','StatusValue','Title','NamaProgram','Teras','Teras0','Teras1','KPI','PIC','PIC_Unit','TarikhMula','TarikhTamat']);
-    const dynamicKey = Object.keys(item).find(k => !fixedKeys.has(k));
-    const name = item.NamaProgram || item.Title || (dynamicKey ? (item[dynamicKey] || dynamicKey) : '');
+  const REFRESH_MS = 60000;
+  let githubTimer = null;
+
+  function firstValue(obj, keys) {
+    for (const key of keys) {
+      const value = obj && obj[key];
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        if (typeof value === 'object') return value.Value || value.Title || value.Label || '';
+        return value;
+      }
+    }
+    return '';
+  }
+
+  function findActivityName(item) {
+    const known = firstValue(item, ['NamaProgram','Nama Program','NamaAktiviti','Nama Aktiviti','Aktiviti','Program','Title','name','nama']);
+    if (known) return String(known);
+    const ignored = /^(id|status|modified|created|author|editor|tarikh|date|teras|kpi|pic|iltizam|sasaran|pencapaian)$/i;
+    const entry = Object.entries(item || {}).find(([key, value]) =>
+      !ignored.test(key) && value !== null && value !== undefined && String(value).trim() !== ''
+    );
+    if (!entry) return 'Aktiviti tanpa nama';
+    return String(entry[1] === true || entry[1] === '' ? entry[0] : entry[1]);
+  }
+
+  function normalizeGitHubRecord(item, index) {
+    item = (item && typeof item === 'object') ? item : {};
+    const name = findActivityName(item);
     return {
       ...item,
-      Title: String(name || ''),
-      NamaProgram: String(name || ''),
-      Status: String(status || '')
+      ID: firstValue(item, ['ID','Id','id']) || ('github-' + (index + 1)),
+      Title: name,
+      NamaProgram: name,
+      Teras: String(firstValue(item, ['Teras','teras','Teras0','Teras1']) || ''),
+      KPI: String(firstValue(item, ['KPI','kpi','Indikator','indicator']) || ''),
+      PIC_Unit: String(firstValue(item, ['PIC_Unit','PIC Unit','PIC','pic','Tanggungjawab']) || ''),
+      Status: String(firstValue(item, ['Status','status','Status0','StatusValue']) || 'Perancangan'),
+      Sasaran: String(firstValue(item, ['Sasaran','sasaran','Target','target']) || ''),
+      Pencapaian: String(firstValue(item, ['Pencapaian','pencapaian','PencapaianSemasa','achievement']) || ''),
+      Iltizam: String(firstValue(item, ['Iltizam','ILTIZAM','iltizam','Iltizam0']) || ''),
+      TarikhMula: firstValue(item, ['TarikhMula','Tarikh Mula','start','StartDate','date']),
+      TarikhTamat: firstValue(item, ['TarikhTamat','Tarikh Tamat','end','EndDate'])
     };
+  }
+
+  function extractRecords(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (!payload || typeof payload !== 'object') return [];
+    for (const key of ['value','records','items','data','activities']) {
+      if (Array.isArray(payload[key])) return payload[key];
+    }
+    return [];
   }
 
   async function loadGitHubRealtimeData() {
@@ -6784,27 +6819,42 @@
       const response = await fetch('./data.json?_t=' + Date.now(), { cache: 'no-store' });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const payload = await response.json();
-      const records = Array.isArray(payload) ? payload :
-        (Array.isArray(payload.value) ? payload.value :
-        (Array.isArray(payload.records) ? payload.records : []));
-      window.spLiveItems = records.map(normalizeGitHubRecord);
-      if (typeof spLiveItems !== 'undefined') spLiveItems = window.spLiveItems;
-      if (typeof renderLiveListDashboard === 'function') renderLiveListDashboard();
-      if (typeof setSPStatus === 'function') {
-        setSPStatus('GitHub Pages tersambung: ' + records.length + ' aktiviti diterima daripada data.json. Auto refresh setiap 60 saat.', true);
+      const records = extractRecords(payload);
+      const normalized = records.map(normalizeGitHubRecord);
+
+      window.spLiveItems = normalized;
+      try { spLiveItems = normalized; } catch (e) {}
+      console.log('GITHUB RECORDS:', normalized);
+
+      if (typeof window.renderLiveListDashboard === 'function') window.renderLiveListDashboard();
+      else if (typeof renderLiveListDashboard === 'function') renderLiveListDashboard();
+
+      if (typeof window.setSPStatus === 'function') {
+        window.setSPStatus('GitHub Pages tersambung: ' + normalized.length + ' aktiviti diterima daripada data.json. Auto refresh setiap 60 saat.', true);
+      } else if (typeof setSPStatus === 'function') {
+        setSPStatus('GitHub Pages tersambung: ' + normalized.length + ' aktiviti diterima daripada data.json. Auto refresh setiap 60 saat.', true);
       }
       const badge = document.getElementById('cloudSyncBadge');
-      if (badge) badge.textContent = 'LIVE GITHUB · ' + records.length + ' rekod · ' + new Date().toLocaleTimeString('ms-MY');
+      if (badge) badge.textContent = 'LIVE GITHUB · ' + normalized.length + ' rekod · ' + new Date().toLocaleTimeString('ms-MY');
+      return true;
     } catch (err) {
       console.warn('GitHub realtime data error:', err);
-      if (typeof setSPStatus === 'function') setSPStatus('GitHub Pages belum menerima data.json. Pastikan fail data.json berada dalam branch main.', false);
+      const message = location.protocol === 'file:'
+        ? 'Pratonton fail tempatan aktif. data.json hanya boleh dibaca selepas index.html dan data.json dimuat naik bersama ke GitHub Pages.'
+        : 'data.json belum dapat dibaca. Pastikan fail data.json berada dalam folder dan branch yang sama dengan index.html.';
+      if (typeof window.setSPStatus === 'function') window.setSPStatus(message, false);
+      else if (typeof setSPStatus === 'function') setSPStatus(message, false);
+      return false;
     }
   }
 
+  window.normalizeGitHubRecord = normalizeGitHubRecord;
+  window.loadGitHubRealtimeData = loadGitHubRealtimeData;
+
   document.addEventListener('DOMContentLoaded', function () {
+    clearInterval(githubTimer);
     loadGitHubRealtimeData();
-    setInterval(loadGitHubRealtimeData, 60000);
+    githubTimer = setInterval(loadGitHubRealtimeData, REFRESH_MS);
   });
 })();
-</script>
-</body></html>
+</script>\n</body></html>
