@@ -6,7 +6,7 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>V18 • V15 REALTIME · Business Plan Politeknik METrO Kuantan (PMKu) 2027</title>
+  <title>V19 · V18 • V15 REALTIME · Business Plan Politeknik METrO Kuantan (PMKu) 2027</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -5915,41 +5915,59 @@
       var urls = getActiveCloudUrls();
       var badgeEl = document.getElementById("cloudSyncBadge");
       if (!urls.getUrl) {
+        window.__PMKU_CLOUD_OK = false;
         if (typeof refreshDashboard === "function") refreshDashboard();
         if (notify && typeof showToast === "function") {
-          showToast("Mod Tempatan (v10)", "Dashboard dikemas kini daripada data semasa. Sila tetapkan URL Power Automate untuk sync awan.");
+          showToast("Mod Sandaran", "URL GET belum ditetapkan. Dashboard menggunakan data.json jika tersedia.");
         }
-        return;
+        return false;
       }
       try {
         var sep = urls.getUrl.indexOf("?") === -1 ? "?" : "&";
-        var res = await fetch(urls.getUrl + sep + "_t=" + Date.now(), { method: "GET" });
-        if (res.ok) {
-          var payload = await res.json();
-          var incoming = parseIncomingCloudPayload(payload);
-          if (incoming) {
-            var currentStr = JSON.stringify(terasData);
-            var incomingStr = JSON.stringify(incoming);
-            if (currentStr !== incomingStr) {
-              terasData = window.terasData = incoming;
-              try { safeSetItem(STORAGE_KEY, incomingStr); } catch (e) {}
-              if (typeof renderTerasSections === "function") renderTerasSections();
-              if (typeof refreshDashboard === "function") refreshDashboard();
-            }
-            if (badgeEl) badgeEl.textContent = "LIVE v10 • Terselaras OneDrive (" + new Date().toLocaleTimeString() + ")";
-            if (notify && typeof showToast === "function") {
-              showToast("Berjaya Sync Real-Time", "Data terkini telah ditarik daripada pangkalan data OneDrive.");
-            }
-          }
+        var res = await fetch(urls.getUrl + sep + "_t=" + Date.now(), {
+          method: "GET",
+          cache: "no-store",
+          headers: { "Accept": "application/json" }
+        });
+        var rawText = await res.text();
+        if (!res.ok) throw new Error("HTTP " + res.status + " " + (rawText || res.statusText));
+        if (!rawText || !rawText.trim()) throw new Error("Flow GET berjaya dipanggil tetapi Response Body kosong.");
+        var payload;
+        try { payload = JSON.parse(rawText); }
+        catch (jsonErr) { throw new Error("Response GET bukan JSON sah: " + rawText.slice(0, 160)); }
+
+        var incoming = parseIncomingCloudPayload(payload);
+        if (!incoming) throw new Error("JSON diterima tetapi JSON_Part1/2/3 tidak dapat digabung atau format tidak sepadan.");
+
+        var currentStr = JSON.stringify(terasData);
+        var incomingStr = JSON.stringify(incoming);
+        if (currentStr !== incomingStr) {
+          terasData = window.terasData = incoming;
+          try { safeSetItem(STORAGE_KEY, incomingStr); } catch (e) {}
+          if (typeof renderTerasSections === "function") renderTerasSections();
+          if (typeof refreshDashboard === "function") refreshDashboard();
         }
+        window.__PMKU_CLOUD_OK = true;
+        window.__PMKU_ACTIVE_SOURCE = "ONEDRIVE_POWER_AUTOMATE";
+        var total = Number((payload && payload.TotalAktiviti) || 0);
+        if (badgeEl) badgeEl.textContent = "LIVE ONEDRIVE / POWER AUTOMATE" + (total ? " · " + total + " aktiviti" : "") + " · " + new Date().toLocaleTimeString("ms-MY");
+        if (typeof updateV18Diagnostics === "function") updateV18Diagnostics("LIVE ONEDRIVE", total || incoming.length || 0, "JSON_Part1 + JSON_Part2 + JSON_Part3", true);
+        if (notify && typeof showToast === "function") showToast("Berjaya Sync Real-Time", "Data terkini diterima daripada Power Automate / OneDrive.");
+        return true;
       } catch (err) {
+        window.__PMKU_CLOUD_OK = false;
+        window.__PMKU_CLOUD_ERROR = String(err && err.message ? err.message : err);
         console.warn("Cloud sync error:", err);
-        if (badgeEl) badgeEl.textContent = "Ralat Sambungan Awan (Semak URL)";
+        if (badgeEl) badgeEl.textContent = "AWAN GAGAL · Menggunakan data.json";
+        if (typeof updateV18Diagnostics === "function") updateV18Diagnostics("SANDARAN GITHUB", 0, window.__PMKU_CLOUD_ERROR, false);
         if (notify && typeof showToast === "function") {
-          showToast("Ralat Sambungan", "Tidak dapat menghubungi pautan Power Automate. Semak URL GET anda.");
+          showToast("GET gagal, sandaran diaktifkan", window.__PMKU_CLOUD_ERROR + " Jika Console menunjukkan CORS, tambah header Access-Control-Allow-Origin: * pada action Response Flow GET.");
         }
+        if (typeof window.loadGitHubRealtimeData === "function") await window.loadGitHubRealtimeData(true);
+        return false;
       }
     }
+    window.syncFromCloud = syncFromCloud;
 
     async function pushToCloud() {
       var urls = getActiveCloudUrls();
@@ -6897,8 +6915,13 @@
     return { matched, unmatched: records.length - matched };
   }
 
-  async function loadGitHubRealtimeData() {
+  async function loadGitHubRealtimeData(forceFallback) {
     try {
+      const cloudUrls = (typeof getActiveCloudUrls === 'function') ? getActiveCloudUrls() : { getUrl: '' };
+      if (!forceFallback && cloudUrls.getUrl) {
+        const ok = await syncFromCloud(false);
+        if (ok) return true;
+      }
       const response = await fetch('./data.json?_t=' + Date.now(), { cache: 'no-store' });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const payload = await response.json();
@@ -6908,19 +6931,19 @@
       window.spLiveItems = normalized;
       try { spLiveItems = normalized; } catch (e) {}
       const mergeResult = mergeRealtimeIntoTerasData(normalized);
-      updateV18Diagnostics('LIVE GITHUB', normalized.length, recordFormat(records), true);
+      updateV18Diagnostics('SANDARAN DATA.JSON', normalized.length, recordFormat(records), true);
       console.log('GITHUB RECORDS:', normalized, 'MATRIX MERGE:', mergeResult);
 
       if (typeof window.renderLiveListDashboard === 'function') window.renderLiveListDashboard();
       else if (typeof renderLiveListDashboard === 'function') renderLiveListDashboard();
 
       if (typeof window.setSPStatus === 'function') {
-        window.setSPStatus('GitHub Pages tersambung: ' + normalized.length + ' aktiviti diterima daripada data.json. Auto refresh setiap 60 saat.', true);
+        window.setSPStatus('Sandaran data.json aktif: ' + normalized.length + ' rekod. Sumber awan belum berjaya dibaca.', true);
       } else if (typeof setSPStatus === 'function') {
-        setSPStatus('GitHub Pages tersambung: ' + normalized.length + ' aktiviti diterima daripada data.json. Auto refresh setiap 60 saat.', true);
+        setSPStatus('Sandaran data.json aktif: ' + normalized.length + ' rekod. Sumber awan belum berjaya dibaca.', true);
       }
       const badge = document.getElementById('cloudSyncBadge');
-      if (badge) badge.textContent = 'LIVE GITHUB · ' + normalized.length + ' rekod · ' + new Date().toLocaleTimeString('ms-MY');
+      if (badge) badge.textContent = 'SANDARAN DATA.JSON · ' + normalized.length + ' rekod · ' + new Date().toLocaleTimeString('ms-MY');
       return true;
     } catch (err) {
       console.warn('GitHub realtime data error:', err);
@@ -6939,8 +6962,8 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     clearInterval(githubTimer);
-    loadGitHubRealtimeData();
-    githubTimer = setInterval(loadGitHubRealtimeData, REFRESH_MS);
+    loadGitHubRealtimeData(false);
+    githubTimer = setInterval(function(){ loadGitHubRealtimeData(false); }, REFRESH_MS);
   });
 })();
 </script>\n</body></html>
