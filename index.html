@@ -6860,41 +6860,85 @@
     set('diagLastSync', new Date().toLocaleString('ms-MY'));
   }
 
-  function mergeRealtimeIntoTerasData(records) {
-    if (!Array.isArray(window.terasData) || !window.terasData.length) return { matched: 0, unmatched: records.length };
-    if (!window.__V18_BASE_TERAS) window.__V18_BASE_TERAS = JSON.parse(JSON.stringify(window.terasData));
-    const merged = JSON.parse(JSON.stringify(window.__V18_BASE_TERAS));
-    const candidates = [];
-    merged.forEach((teras, ti) => (teras.sections || []).forEach(sec => (sec.rows || []).forEach(row => candidates.push({ teras, ti, row }))));
-    let matched = 0;
-
-    records.forEach((rec, index) => {
-      const explicitRow = compactText(firstValue(rec, ['RowID','RowId','rowId','KodBaris','Kod Baris']));
-      const rTeras = compactText(firstValue(rec, ['Teras','teras','Teras0','Teras1']));
-      const rPic = compactText(firstValue(rec, ['PIC_Unit','PIC Unit','PIC','pic','Tanggungjawab']));
-      const rKpi = compactText(firstValue(rec, ['KPI','kpi','Indikator','indicator']));
-      const rName = compactText(rec.NamaProgram || rec.Title || findActivityName(rec));
-      let best = null, bestScore = -1;
-
-      candidates.forEach(c => {
-        const rowId = compactText(c.row.id);
-        const rowPic = compactText(c.row.pic);
-        const rowKpi = compactText(c.row.indicator + ' ' + (c.row.activities || []).map(a => a.kpi).join(' '));
-        const rowTeras = compactText(c.teras.id + ' ' + c.teras.title + ' teras ' + (c.ti + 1));
-        const rowNames = compactText((c.row.activities || []).map(a => a.name).join(' '));
-        let score = 0;
-        if (explicitRow && explicitRow === rowId) score += 1000;
-        if (rTeras && (rowTeras.includes(rTeras) || rTeras.includes(String(c.ti + 1)))) score += 25;
-        if (rPic && rowPic && (rowPic.includes(rPic) || rPic.includes(rowPic))) score += 35;
-        if (rKpi && rowKpi && (rowKpi.includes(rKpi) || rKpi.includes(rowKpi))) score += 30;
-        if (rName && rowNames && (rowNames.includes(rName) || rName.includes(rowNames))) score += 45;
-        if (score > bestScore) { bestScore = score; best = c; }
+  function renderV212Charts() {
+    const tc = document.getElementById('terasSvgChartBox');
+    const sc = document.getElementById('statusSvgChartBox');
+    const activities = [];
+    (window.terasData || []).forEach(function(t, ti) {
+      (t.sections || []).forEach(function(sec) {
+        (sec.rows || []).forEach(function(row) {
+          (row.activities || []).forEach(function(a) {
+            activities.push({ activity: a, terasNo: ti + 1 });
+          });
+        });
       });
+    });
+    const tCount = {};
+    const sCount = { Selesai: 0, 'Sedang Berjalan': 0, Perancangan: 0 };
+    activities.forEach(function(x) {
+      const tk = 'Teras ' + x.terasNo;
+      tCount[tk] = (tCount[tk] || 0) + 1;
+      const raw = compactText(x.activity.achievement || x.activity.status || '');
+      const sk = raw.includes('selesai') || raw.includes('100') ? 'Selesai' :
+        (raw.includes('tindakan') || raw.includes('jalan') || raw.includes('laksana')) ? 'Sedang Berjalan' : 'Perancangan';
+      sCount[sk]++;
+    });
+    const bar = function(label, value, max, color) {
+      const width = max ? Math.max(value ? 4 : 0, Math.round(value / max * 100)) : 0;
+      return '<div class="mb-2"><div class="flex justify-between text-[11px] font-bold text-slate-700"><span>' + label + '</span><span>' + value + '</span></div><div class="h-3 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full" style="width:' + width + '%;background:' + color + '"></div></div></div>';
+    };
+    if (tc) {
+      const max = Math.max(1, ...Object.values(tCount));
+      tc.innerHTML = '<div class="p-4">' + Object.keys(tCount).sort().map(function(k) { return bar(k, tCount[k], max, '#002855'); }).join('') + '</div>';
+    }
+    if (sc) {
+      const total = Math.max(1, activities.length);
+      sc.innerHTML = '<div class="p-4 w-full">' + bar('Selesai', sCount.Selesai, total, '#059669') + bar('Sedang Berjalan', sCount['Sedang Berjalan'], total, '#2563eb') + bar('Perancangan', sCount.Perancangan, total, '#d97706') + '</div>';
+    }
+  }
 
-      if (!best || bestScore < 25) return;
+  function mergeRealtimeIntoTerasData(records) {
+    const base = (window.terasData || []).map(function(t) {
+      return { ...t, sections: (t.sections || []).map(function(sec) {
+        return { ...sec, rows: (sec.rows || []).map(function(row) {
+          return { ...row, activities: (row.activities || []).slice() };
+        }) };
+      }) };
+    });
+    const candidates = [];
+    base.forEach(function(teras, ti) {
+      (teras.sections || []).forEach(function(sec) {
+        (sec.rows || []).forEach(function(row) {
+          candidates.push({ teras: teras, ti: ti, terasNo: ti + 1, row: row });
+        });
+      });
+    });
+    let matched = 0;
+    records.forEach(function(rec, index) {
+      const name = String(rec.NamaProgram || rec.Title || findActivityName(rec) || '').trim();
+      if (!name) return;
+      const terasMatch = String(firstValue(rec, ['Teras','teras','Teras0','Teras1']) || '').match(/\d+/);
+      const kpiMatch = String(firstValue(rec, ['KPI','kpi','Indikator','indicator']) || '').match(/\d+/);
+      const wantedTeras = terasMatch ? Number(terasMatch[0]) : 0;
+      const wantedKpi = kpiMatch ? Number(kpiMatch[0]) : 0;
+      let pool = candidates;
+      if (wantedTeras) {
+        const byTeras = pool.filter(function(c) { return c.terasNo === wantedTeras; });
+        if (byTeras.length) pool = byTeras;
+      }
+      if (wantedKpi) {
+        const pattern = new RegExp('(^|\\D)' + wantedKpi + '(\\D|$)');
+        const byKpi = pool.filter(function(c) {
+          const hay = String(c.row.indicator || '') + ' ' + (c.row.activities || []).map(function(a) { return String(a.kpi || ''); }).join(' ');
+          return pattern.test(hay);
+        });
+        if (byKpi.length) pool = byKpi;
+      }
+      const best = pool[0];
+      if (!best) return;
       const activity = {
-        id: String(firstValue(rec, ['ID','Id','id']) || ('live-' + (index + 1))),
-        name: String(rec.NamaProgram || rec.Title || findActivityName(rec)),
+        id: String(firstValue(rec, ['ID','Id','id']) || ('pic-' + (index + 1))),
+        name: name,
         kpi: String(firstValue(rec, ['KPI','kpi','Indikator','indicator']) || best.row.indicator || ''),
         iltizam: String(firstValue(rec, ['Iltizam','ILTIZAM','iltizam','Iltizam0']) || best.row.iltizam || ''),
         target: String(firstValue(rec, ['Sasaran','sasaran','Target','target']) || ''),
@@ -6902,17 +6946,19 @@
         achievement: String(firstValue(rec, ['Pencapaian','pencapaian','PencapaianSemasa','achievement']) || ('Status: ' + firstValue(rec, ['Status','status','Status0','StatusValue'])))
       };
       best.row.activities = best.row.activities || [];
-      const sameIndex = best.row.activities.findIndex(a => compactText(a.name) === compactText(activity.name));
+      const sameIndex = best.row.activities.findIndex(function(a) {
+        return String(a.id || '') === activity.id || compactText(a.name) === compactText(activity.name);
+      });
       if (sameIndex >= 0) best.row.activities[sameIndex] = { ...best.row.activities[sameIndex], ...activity };
       else best.row.activities.push(activity);
       matched++;
     });
-
-    window.terasData = merged;
-    try { terasData = merged; } catch (e) {}
+    window.terasData = base;
+    try { terasData = base; } catch (e) {}
     if (typeof window.renderTerasSections === 'function') window.renderTerasSections();
     else if (typeof renderTerasSections === 'function') renderTerasSections();
-    return { matched, unmatched: records.length - matched };
+    renderV212Charts();
+    return { matched: matched, unmatched: records.length - matched };
   }
 
   async function loadGitHubRealtimeData(forceFallback) {
@@ -6998,4 +7044,5 @@
    Asas untuk kiraan aktiviti pada butang Isi/Kemaskini dan status kad induk. */
 window.PMKU_V20=true;
 window.PMKU_V21=true;
+window.PMKU_V212=true;
 </script>\n</body></html>
